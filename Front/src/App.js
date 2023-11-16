@@ -96,11 +96,9 @@ const ContactList = () => {
 
     try {
       await api.put(`Task-Update/${id}`, updatedContact);
-      // const response = await api.get('Task-GetAll');
       setContacts((prevContacts) => {
         const updatedContacts = prevContacts.map((contact) => {
           if (contact.id === id) {
-            // Обновите редактированный контакт
             return { ...contact, ...updatedContact };
           }
           return contact;
@@ -108,7 +106,6 @@ const ContactList = () => {
   
         return updatedContacts;
       });
-      // setContacts(response.data);
       setEditingContact(null);
       setIsEditing(false);
     } catch (error) {
