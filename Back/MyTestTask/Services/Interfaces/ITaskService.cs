@@ -4,14 +4,14 @@ namespace MyTestTask.Services.Interfaces
 {
     public interface ITaskService
     {
-        Task<Contact> Get(int id);
+        Task<Contact> Get(string userId, int id);
 
-        Task<List<Contact>> GetAll();
+        Task<List<Contact>> GetAll(string userId);
 
-        Task<Contact> Add(Contact task);
+        Task<Contact> Add(string userId, Contact task);
 
-        Task Delete(int taskId);
+        Task Delete(string userId, int taskId);
 
-        Task Update(int taskId, Contact task);
+        Task Update(string userId, int taskId, Contact task);
     }
 }
