@@ -7,6 +7,9 @@ import NewContactForm from './NewContactForm';
 import './styles.css';
 import { validateContactData } from './contactValidation';
 
+import LoginForm from './LoginPage';
+import RegistrationForm from './RegistrationPage';
+
 Modal.setAppElement('#root');
 
 const ContactList = () => {
@@ -25,11 +28,22 @@ const ContactList = () => {
   const [validationErrorsEditing, setValidationErrorsEditing] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
 
+  const [authToken, setAuthToken] = useState(null);
+
+
+  const handleLogin = (token) => {
+    setAuthToken(token);
+  };
+
+  const handleRegister = (token) => {
+    setAuthToken(token);
+  };
+
   useEffect(() => {
     const fetchData = async () => {
       try {
-        const response = await api.get('Task-GetAll');
-        setContacts(response.data);
+        // const response = await api.get('Task-GetAll');
+        // setContacts(response.data);
       } catch (error) {
         console.error('Error fetching contacts:', error);
       } finally {
@@ -39,6 +53,30 @@ const ContactList = () => {
 
     fetchData();
   }, []);
+
+  useEffect(() => {
+    const fetchData = async () => {
+      try {
+        const response = await api.get('Task-GetAll', {
+          headers: {
+            Authorization: `Bearer ${authToken}`,
+          },
+        });
+        setContacts(response.data);
+      } catch (error) {
+        console.error('Error fetching contacts:', error);
+      } finally {
+        setIsLoading(false);
+      }
+    };
+
+    if (authToken) {
+      fetchData();
+    }
+  }, [authToken]);
+
+
+
 
   const handleInputChange = (e) => {
     const { name, value } = e.target;
@@ -57,7 +95,14 @@ const ContactList = () => {
     const formattedBirthDate = new Date(birthDate);
 
     try {
-      const response = await api.post('Task-Add', { ...newContact, birthDate: formattedBirthDate });
+      const response = await api.post('Task-Add', { ...newContact, birthDate: formattedBirthDate }, {
+        headers: {
+          Authorization: `Bearer ${authToken}`,
+        },
+      });
+  
+      console.log('Response:', response.data);
+
       setContacts([...contacts, response.data]);
       setNewContact({
         name: '',
@@ -70,6 +115,7 @@ const ContactList = () => {
       setIsAddingNewContact(false);
     } catch (error) {
       console.error('Error adding contact:', error);
+      console.error('Error details:', error.response.data);
 
       if (error.response && error.response.data) {
         setValidationErrors([error.response.data.message]);
@@ -77,9 +123,14 @@ const ContactList = () => {
     }
   };
 
+  
   const deleteContact = async (id) => {
     try {
-      await api.delete(`Task-Delete/${id}`);
+      await api.delete(`Task-Delete/${id}`, {
+      headers: {
+        Authorization: `Bearer ${authToken}`,
+      },
+    });
       setContacts(contacts.filter((contact) => contact.id !== id));
     } catch (error) {
       console.error('Error deleting contact:', error);
@@ -95,7 +146,11 @@ const ContactList = () => {
     }
 
     try {
-      await api.put(`Task-Update/${id}`, updatedContact);
+      await api.put(`Task-Update/${id}`, updatedContact, {
+        headers: {
+          Authorization: `Bearer ${authToken}`,
+        },
+      });
       setContacts((prevContacts) => {
         const updatedContacts = prevContacts.map((contact) => {
           if (contact.id === id) {
@@ -150,7 +205,18 @@ const ContactList = () => {
     return <div>Loading...</div>;
   }
 
+ 
+
   return (
+    <div>
+    {!authToken && (
+      <div>
+        <LoginForm onLogin={handleLogin} />
+        <RegistrationForm onRegister={handleRegister} />
+      </div>
+    )}
+
+    {authToken && (
     <div>
       <div className="header">
         <h1>Список контактов</h1>
@@ -192,6 +258,8 @@ const ContactList = () => {
           />
         </Modal>
       )}
+    </div>
+    )}
     </div>
   );
 };
